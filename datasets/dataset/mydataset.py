@@ -62,7 +62,7 @@ class MyDataset(data.Dataset):
 
     def __getitem__(self, index):
         img_path = self.img_path_list[index]
-        anns = load_annotation(os.path.splitext(img_path)[0] + '.xml', )
+        anns = load_annotation(os.path.splitext(img_path)[0] + '.xml', all_classes=self.class_name)
         num_objs = min(len(anns), self.max_objs)
 
         img = cv2.imread(img_path)
