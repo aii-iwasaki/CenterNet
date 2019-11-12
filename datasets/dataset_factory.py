@@ -13,23 +13,25 @@ from .dataset.kitti import KITTI
 from .dataset.coco_hp import COCOHP
 
 from .dataset.mydataset import MyDataset
-
+from .dataset.mydataset2 import MyDataset2
 
 dataset_factory = {
-  'coco': COCO,
-  'pascal': PascalVOC,
-  'kitti': KITTI,
-  'coco_hp': COCOHP
+    'coco': COCO,
+    'pascal': PascalVOC,
+    'kitti': KITTI,
+    'coco_hp': COCOHP
 }
 
 _sample_factory = {
-  'exdet': EXDetDataset,
-  'ctdet': CTDetDataset,
-  'ddd': DddDataset,
-  'multi_pose': MultiPoseDataset
+    'exdet': EXDetDataset,
+    'ctdet': CTDetDataset,
+    'ddd': DddDataset,
+    'multi_pose': MultiPoseDataset
 }
 
 
 def get_dataset(dataset, task):
-  return MyDataset
+    class Dataset(MyDataset2, _sample_factory[task]):
+        pass
 
+    return Dataset

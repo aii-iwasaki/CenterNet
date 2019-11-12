@@ -1,6 +1,7 @@
 import os
 import cv2
 import math
+import json
 import numpy as np
 
 import torch.utils.data as data
@@ -42,6 +43,43 @@ class MyDataset(data.Dataset):
         self.num_samples = len(self.img_path_list)
 
         print('Loaded {} {} samples'.format(split, self.num_samples))
+
+    def convert_eval_format(self, all_bboxes):
+        # import pdb; pdb.set_trace()
+        detections = []
+        for image_id in all_bboxes:
+            for cls_ind in all_bboxes[image_id]:
+                category_id = cls_ind
+                for bbox in all_bboxes[image_id][cls_ind]:
+                    bbox[2] -= bbox[0]
+                    bbox[3] -= bbox[1]
+                    score = bbox[4]
+                    bbox_out = list(map(self._to_float, bbox[0:4]))
+
+                    detection = {
+                        "image_id": int(image_id),
+                        "category_id": int(category_id),
+                        "bbox": bbox_out,
+                        "score": float("{:.2f}".format(score))
+                    }
+                    if len(bbox) > 5:
+                        extreme_points = list(map(self._to_float, bbox[5:13]))
+                        detection["extreme_points"] = extreme_points
+                    detections.append(detection)
+        return detections
+
+    def save_results(self, results, save_dir):
+        json.dump(self.convert_eval_format(results),
+                  open('{}/results.json'.format(save_dir), 'w'))
+
+    def run_eval(self, results, save_dir):
+        print('{}/results.json'.format(save_dir))
+        self.save_results(results, save_dir)
+        coco_dets = self.coco.loadRes('{}/results.json'.format(save_dir))
+        coco_eval = COCOeval(self.coco, coco_dets, "bbox")
+        coco_eval.evaluate()
+        coco_eval.accumulate()
+        coco_eval.summarize()
 
     def _to_float(self, x):
         return float("{:.2f}".format(x))
